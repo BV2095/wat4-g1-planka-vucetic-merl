@@ -2,68 +2,18 @@
  * Test environment settings
  * (sails.config.*)
  *
- * What you see below is a quick outline of the built-in settings you need
- * to configure your Sails app for test.  The configuration in this file
- * is only used in your test environment, i.e. when you lift your app using:
+ * Used when the app is lifted with NODE_ENV=test (see test/jest/global-setup.js).
  *
- * ```
- * NODE_ENV=test node app
- * ```
- *
- * > If you're using git as a version control solution for your Sails app,
- * > this file WILL BE COMMITTED to your repository by default, unless you add
- * > it to your .gitignore file.  If your repository will be publicly viewable,
- * > don't add private/sensitive data (like API secrets / db passwords) to this file!
- *
- * For more best practices and tips, see:
- * https://sailsjs.com/docs/concepts/deployment
+ * NOTE: We intentionally do NOT override `datastores` here. The integration
+ * tests run against a real PostgreSQL database (configured via DATABASE_URL in
+ * config/datastores.js) so that relational behaviour — associations and the
+ * string primary keys Planka relies on — matches production. An in-memory
+ * sails-disk store cannot reproduce that (it generates numeric ids and does not
+ * apply the knex migrations). The test database is migrated once and the data
+ * created by each test is truncated afterwards (see test/support/db.js).
  */
 
 module.exports = {
-  /**
-   *
-   * Tell Sails what database(s) it should use in test.
-   *
-   * (https://sailsjs.com/config/datastores)
-   *
-   */
-
-  datastores: {
-    /**
-     *
-     * Configure your default test database.
-     *
-     * 1. Choose an adapter:
-     *    https://sailsjs.com/plugins/databases
-     *
-     * 2. Install it as a dependency of your Sails app.
-     *    (For example:  npm install sails-mysql --save)
-     *
-     * 3. Then set it here (`adapter`), along with a connection URL (`url`)
-     *    and any other, adapter-specific customizations.
-     *    (See https://sailsjs.com/config/datastores for help.)
-     *
-     */
-
-    default: {
-      adapter: 'sails-disk',
-
-      /**
-       *
-       * More adapter-specific options
-       *
-       * > For example, for some hosted PostgreSQL providers (like Heroku), the
-       * > extra `ssl: true` option is mandatory and must be provided.
-       *
-       * More info:
-       * https://sailsjs.com/config/datastores
-       *
-       */
-
-      inMemoryOnly: true,
-    },
-  },
-
   log: {
     level: 'warn',
   },

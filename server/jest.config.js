@@ -18,6 +18,7 @@ module.exports = {
   testMatch: ['<rootDir>/test/api/**/*.test.js'],
   globalSetup: '<rootDir>/test/jest/global-setup.js',
   globalTeardown: '<rootDir>/test/jest/global-teardown.js',
+  setupFilesAfterEnv: ['<rootDir>/test/support/jest-hooks.js'],
   // Sails is a shared resource, so run integration test files serially.
   maxWorkers: 1,
   testTimeout: 30000,

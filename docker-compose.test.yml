@@ -1,0 +1,25 @@
+# Dedicated PostgreSQL instance for the server INTEGRATION tests.
+#
+# Kept separate from the main docker-compose.yml stack (which serves the app on
+# :3000 for E2E/load tests) so integration-test data never mixes with anything
+# else. Start it once and leave it running; the schema is migrated on the first
+# test run and each test truncates the data it created afterwards.
+#
+#   npm run test:db:up       # start it
+#   npm run test:integration
+#   npm run test:db:down     # stop + wipe
+
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    restart: on-failure
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_DB=planka_test
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d planka_test']
+      interval: 5s
+      timeout: 5s
+      retries: 5
