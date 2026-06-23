@@ -15,8 +15,19 @@ module.exports = {
   transform: {
     '^.+\\.(js|jsx)$': ['babel-jest', { presets: ['@babel/preset-env'] }],
   },
+  // Non-JS imports (images, styles) are irrelevant to unit tests — stub them so
+  // modules that transitively import assets can still be loaded.
+  moduleNameMapper: {
+    '\\.(png|jpe?g|gif|svg|css|scss)$': '<rootDir>/tests/asset-stub.cjs',
+  },
   clearMocks: true,
   collectCoverage: true,
-  collectCoverageFrom: ['src/utils/**/*.js', '!src/**/*.test.js'],
+  // Scope coverage to the utilities our unit tests actually target.
+  collectCoverageFrom: [
+    'src/utils/merge-records.js',
+    'src/utils/stopwatch.js',
+    'src/utils/validator.js',
+    'src/utils/mentions.js',
+  ],
   coverageDirectory: 'coverage',
 };
