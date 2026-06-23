@@ -1,13 +1,8 @@
 name: Build and Push Docker Nightly Image
 
 on:
-  push:
-    paths-ignore:
-      - '.github/**'
-      - 'charts/**'
-      - 'docker-*.yml'
-      - '*.md'
-    branches: [master]
+  # Disabled for the fork (needs a self-hosted runner + registry access).
+  # Manual trigger only.
   workflow_dispatch:
 
 jobs:

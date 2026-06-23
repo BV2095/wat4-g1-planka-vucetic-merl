@@ -1,8 +1,8 @@
 name: Build and Publish Release Package
 
 on:
-  release:
-    types: [created]
+  # Disabled for the fork (publishes a release package upstream). Manual only.
+  workflow_dispatch:
 
 jobs:
   build-and-publish-release-package:

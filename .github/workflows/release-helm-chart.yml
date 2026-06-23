@@ -1,11 +1,8 @@
 name: Release Charts
 
 on:
-  push:
-    paths:
-      - "charts/**"
-    branches:
-      - master
+  # Disabled for the fork (needs a self-hosted runner). Manual trigger only.
+  workflow_dispatch:
 
 jobs:
   release-helm-chart:

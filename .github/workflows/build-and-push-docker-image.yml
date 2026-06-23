@@ -1,8 +1,9 @@
 name: Build and Push Docker Image
 
 on:
-  release:
-    types: [created]
+  # Disabled for the fork (needs a self-hosted runner + registry access).
+  # Manual trigger only.
+  workflow_dispatch:
 
 jobs:
   build-and-push-docker-image:

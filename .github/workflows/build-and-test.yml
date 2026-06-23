@@ -1,12 +1,9 @@
 name: Build and Test
 
 on:
-  pull_request:
-    branches:
-      - master
-  push:
-    branches:
-      - master
+  # Disabled for the fork — superseded by tests.yml (our test pyramid).
+  # Kept for reference; runs only when triggered manually.
+  workflow_dispatch:
 
 jobs:
   build-and-test:
