@@ -19,6 +19,9 @@ export default defineConfig({
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
   use: {
     baseURL,
+    // Pin the UI language so text-based locators are deterministic regardless of
+    // the host machine's locale (PLANKA detects the language from the browser).
+    locale: 'en-US',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
