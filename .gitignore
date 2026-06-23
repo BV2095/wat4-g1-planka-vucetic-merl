@@ -13,3 +13,9 @@ yarn.lock
 
 # Chart dependencies
 **/charts/*.tgz
+
+# Test artifacts
+client/playwright-report
+client/test-results
+coverage
+load/results

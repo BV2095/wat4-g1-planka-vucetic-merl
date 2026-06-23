@@ -7,7 +7,9 @@
     "postinstall": "patch-package",
     "lint": "eslint --ext js,jsx src --report-unused-disable-directives",
     "start": "vite",
-    "test": "jest",
+    "test": "npm run test:unit",
+    "test:unit": "jest --config jest.config.cjs",
+    "test:e2e": "playwright test",
     "test:acceptance": "cucumber-js --import tests/acceptance/cucumber.conf.js --import tests/acceptance/steps/**/*.js --format @cucumber/pretty-formatter tests"
   },
   "babel": {
@@ -72,11 +74,6 @@
         }
       }
     ]
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.(js|jsx)$": "babel-jest"
-    }
   },
   "overrides": {
     "react-mentions": {

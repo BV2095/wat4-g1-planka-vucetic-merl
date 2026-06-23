@@ -16,7 +16,8 @@
     "start": "nodemon",
     "start:prod": "cross-env NODE_ENV=production node app.js --prod",
     "swagger:generate": "node generate-swagger.js",
-    "test": "mocha test/lifecycle.test.js test/integration/**/*.test.js test/utils/**/*.test.js"
+    "test": "npm run test:integration",
+    "test:integration": "jest --config jest.config.js"
   },
   "eslintConfig": {
     "plugins": [
@@ -94,6 +95,7 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.5",
     "ignore": "^7.0.5",
+    "jest": "^30.3.0",
     "mocha": "^11.7.5",
     "nodemon": "^3.1.14",
     "prettier": "3.8.1",
