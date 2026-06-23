@@ -25,7 +25,7 @@ jobs:
           cache: npm
           cache-dependency-path: client/package-lock.json
       - name: Install dependencies
-        run: npm ci --ignore-scripts && npx patch-package
+        run: npm ci
       - name: Run unit tests
         run: npm run test:unit
       - name: Upload coverage
@@ -67,7 +67,7 @@ jobs:
           cache: npm
           cache-dependency-path: server/package-lock.json
       - name: Install dependencies
-        run: npm ci --ignore-scripts && npx patch-package
+        run: npm ci
       - name: Run integration tests
         run: npm run test:integration
 
@@ -87,7 +87,7 @@ jobs:
 
       - name: Install client dependencies
         working-directory: client
-        run: npm ci --ignore-scripts && npx patch-package
+        run: npm ci
 
       - name: Install Playwright browser
         working-directory: client
@@ -119,6 +119,9 @@ jobs:
 
       - name: Start PLANKA stack
         run: docker compose up -d --wait
+
+      - name: Initialize instance (accept terms)
+        run: bash scripts/accept-terms.sh http://localhost:3000
 
       - name: Run load tests (k6 via docker)
         run: |
