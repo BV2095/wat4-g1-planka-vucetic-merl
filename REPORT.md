@@ -5,7 +5,7 @@
 | Name          |
 |---------------|
 | Tarik Merl    |
-| Boban Vucetic |
+| Boban Vučetić |
 
 **Verwendete KI-Werkzeuge:** Claude (Anthropic) – eingesetzt zur Unterstützung bei Teststruktur, Dokumentation und Code-Review.
 
