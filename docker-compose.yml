@@ -1,6 +1,11 @@
 services:
   planka:
-    image: ghcr.io/plankanban/planka:latest
+    # Build the image from this repo's source (client + server) so the E2E and
+    # load tests exercise our actual code, not a prebuilt upstream release.
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: planka-fork:local
     restart: on-failure
     volumes:
       - data:/app/data
