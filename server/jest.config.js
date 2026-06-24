@@ -1,11 +1,12 @@
 /*
  * Jest configuration for SERVER INTEGRATION tests.
  *
- * Integration tests run against a real, lifted Sails application. Sails is
- * lifted exactly once (globalSetup) and lowered once (globalTeardown). In the
- * test environment (NODE_ENV=test) Sails uses an in-memory sails-disk
- * datastore (see config/env/test.js), so no external database is required and
- * every run starts from a clean, isolated state.
+ * Integration tests run against a real, lifted Sails application backed by a
+ * real PostgreSQL test database (configured via DATABASE_URL; see
+ * config/env/test.js). Sails is lifted exactly once (globalSetup) and lowered
+ * once (globalTeardown); globalSetup also runs the knex migrations + baseline
+ * seed. Each test truncates the data it created afterwards (test/support/db.js),
+ * so every test starts from a clean, isolated state.
  *
  * Tests talk to the lifted app over HTTP via supertest against TEST_BASE_URL,
  * which keeps them independent from the Sails instance running in the main

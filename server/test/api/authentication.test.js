@@ -1,8 +1,8 @@
 /*
- * INTEGRATION TESTS — Authentication (3 tests)
+ * INTEGRATION TESTS — Authentication (3 tests, owner: Merl)
  *
  * Exercise the real login endpoint and the auth policy middleware against the
- * lifted Sails app with a seeded admin user (see test/support/seed.js).
+ * lifted Sails app with a seeded admin user (seeded in test/jest/global-setup.js).
  */
 
 const { api, login } = require('../support/auth');

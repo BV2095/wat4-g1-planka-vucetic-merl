@@ -1,5 +1,5 @@
 /*
- * INTEGRATION TESTS — Projects (3 tests)
+ * INTEGRATION TESTS — Projects (3 tests, owner: Vučetić)
  *
  * Exercise the projects API end-to-end (HTTP -> Sails -> PostgreSQL) with real
  * authentication. Data created here is truncated after each test
