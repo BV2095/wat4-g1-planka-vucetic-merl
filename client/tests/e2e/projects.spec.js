@@ -13,9 +13,7 @@ test('creates a project through the UI', async ({ page }) => {
 
   const projectName = `E2E Project ${Date.now()}`;
 
-  // Open the "Create project" dialog. Language-independent selector: the home
-  // page's add-project card is a button whose CSS-module class contains "addButton".
-  await page.locator('button[class*="addButton"]').first().click();
+  await page.getByTestId('home-add-project').first().click();
 
   // Fill the name and submit by pressing Enter.
   await page.fill('input[name="name"]', projectName);

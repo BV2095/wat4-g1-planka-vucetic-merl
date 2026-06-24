@@ -23,8 +23,7 @@ test.describe('Authentication', () => {
     await expect(page.getByText(ADMIN.name)).toBeVisible();
 
     await page.getByText(ADMIN.name).click(); // open the user menu
-    // Language-independent: the log-out menu item carries a semantic-ui "log out" icon.
-    await page.locator('i.log.out.icon').click();
+    await page.getByTestId('user-action-logout').click();
 
     await expect(page.locator('input[name="emailOrUsername"]')).toBeVisible();
   });

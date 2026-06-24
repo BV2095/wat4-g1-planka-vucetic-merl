@@ -118,6 +118,7 @@ const UserActionsStep = React.memo(({ onClose }) => {
           <hr className={styles.divider} />
           <Menu.Item
             {...logoutMenuItemProps} // eslint-disable-line react/jsx-props-no-spreading
+            data-testid="user-action-logout"
             className={styles.menuItem}
             onClick={handleLogoutClick}
           >

@@ -51,6 +51,7 @@ const Projects = React.memo(({ ids, title, titleIcon, withTypeIndicator, onAdd }
           <Grid.Column className={styles.column}>
             <button
               type="button"
+              data-testid="home-add-project"
               className={classNames(styles.card, styles.addButton)}
               onClick={onAdd}
             >
