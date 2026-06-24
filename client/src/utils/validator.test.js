@@ -1,21 +1,27 @@
 import { isUrl, isPassword, isUsername } from './validator';
 
-// Owner: Vučetić — 3 unit tests
+// Owner: Vučetić — parametrized unit tests (test.each)
 describe('validator', () => {
-  test('isUrl accepts a valid https URL and rejects bad ones', () => {
-    expect(isUrl('https://example.com')).toBe(true);
-    expect(isUrl('example.com')).toBe(false); // missing protocol
-    expect(isUrl('ftp://example.com')).toBe(false); // disallowed protocol
+  test.each([
+    ['https://example.com', true],
+    ['example.com', false], // missing protocol
+    ['ftp://example.com', false], // disallowed protocol
+  ])('isUrl(%j) === %s', (input, expected) => {
+    expect(isUrl(input)).toBe(expected);
   });
 
-  test('isUsername enforces length and allowed characters', () => {
-    expect(isUsername('john.doe')).toBe(true);
-    expect(isUsername('ab')).toBe(false); // too short
-    expect(isUsername('has space')).toBe(false); // illegal char
+  test.each([
+    ['john.doe', true],
+    ['ab', false], // too short
+    ['has space', false], // illegal character
+  ])('isUsername(%j) === %s', (input, expected) => {
+    expect(isUsername(input)).toBe(expected);
   });
 
-  test('isPassword rejects weak and accepts strong passwords', () => {
-    expect(isPassword('1234')).toBe(false);
-    expect(isPassword('correcthorsebatterystaple')).toBe(true);
+  test.each([
+    ['1234', false], // weak
+    ['correcthorsebatterystaple', true], // strong
+  ])('isPassword(%j) === %s', (input, expected) => {
+    expect(isPassword(input)).toBe(expected);
   });
 });

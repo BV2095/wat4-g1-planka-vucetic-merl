@@ -1,17 +1,22 @@
 import { mentionTextToMarkup, mentionMarkupToText } from './mentions';
 
-// Owner: Vučetić — 2 unit tests
+// Owner: Vučetić — parametrized unit tests (test.each)
 describe('mentions', () => {
   const userByUsername = {
     john: { username: 'john', id: '42' },
   };
 
-  test('mentionTextToMarkup converts known @mentions and leaves unknown ones', () => {
-    expect(mentionTextToMarkup('hi @john', userByUsername)).toBe('hi @[john](42)');
-    expect(mentionTextToMarkup('hi @bob', userByUsername)).toBe('hi @bob');
+  test.each([
+    ['hi @john', 'hi @[john](42)'], // known mention -> markup
+    ['hi @bob', 'hi @bob'], // unknown mention left untouched
+  ])('mentionTextToMarkup(%j) === %j', (input, expected) => {
+    expect(mentionTextToMarkup(input, userByUsername)).toBe(expected);
   });
 
-  test('mentionMarkupToText converts markup back to a plain @mention', () => {
-    expect(mentionMarkupToText('hi @[john](42)')).toBe('hi @john');
+  test.each([
+    ['hi @[john](42)', 'hi @john'], // single mention
+    ['@[john](42) and @[john](42)', '@john and @john'], // multiple in one string
+  ])('mentionMarkupToText(%j) === %j', (input, expected) => {
+    expect(mentionMarkupToText(input)).toBe(expected);
   });
 });
