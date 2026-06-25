@@ -13,7 +13,7 @@
 
 ## 1. Webanwendung: Planka
 
-**Planka** ist eine selbst-hostbare, kollaborative Kanban-Board-Applikation (Open Source, MIT-Lizenz). Sie ist als Eigenhosting-Alternative zu Trello konzipiert und bietet:
+**Planka** ist eine selbst-hostbare, kollaborative Kanban-Board-Applikation (quelloffen, PLANKA Community License v1.1). Sie ist als Eigenhosting-Alternative zu Trello konzipiert und bietet:
 
 - Echtzeit-Kollaboration via WebSockets (Socket.io)
 - Drag-and-Drop Kanban-Boards mit Karten, Listen und Boards
@@ -64,9 +64,9 @@ Unser Ansatz: Wir haben die fehlenden Ebenen der Testpyramide vollständig neu i
 
 | Ebene                | Framework                  | Version  |Verwendungszweck                                   |
 |----------------------|----------------------------|----------|---------------------------------------------------|
-| Unit (Client)        | **Jest**                   | 29       | Utility-Funktionen im Node-Environment            |
-| Integration (Server) | **Jest** + **supertest**   | 29 / 6   | HTTP-Roundtrips gegen echtes Sails + PostgreSQL   |
-| E2E / System         | **Playwright**             | 1.49     | Browser-Automation (Chromium)                     |
+| Unit (Client)        | **Jest**                   | 30       | Utility-Funktionen im Node-Environment            |
+| Integration (Server) | **Jest** + **supertest**   | 30 / 7   | HTTP-Roundtrips gegen echtes Sails + PostgreSQL   |
+| E2E / System         | **Playwright**             | 1.58     | Browser-Automation (Chromium)                     |
 | Load                 | **k6** (Grafana)           | latest   | Lasttests via Docker-Container                    |
 
 ---
@@ -74,6 +74,8 @@ Unser Ansatz: Wir haben die fehlenden Ebenen der Testpyramide vollständig neu i
 ## 4. Unit Tests (Client – Jest)
 
 Konfiguration: [`client/jest.config.cjs`](client/jest.config.cjs) — `testEnvironment: 'node'`, `collectCoverage: true`, `clearMocks: true`. Keine Browser-API, keine Netzwerkaufrufe. Asset-Imports werden durch Stubs neutralisiert.
+
+> **Hinweis zur Zählung:** Es gibt **10 logische Test-Funktionen** (5 pro Person, wie unten aufgelistet). Da mehrere davon mit Jests `test.each` parametrisiert sind (mehrere Eingabe/Erwartet-Paare pro Funktion), meldet `npm run test:unit` insgesamt **18 Einzelfälle**.
 
 ### 4.1 Vučetić – 5 Unit Tests
 
@@ -99,7 +101,7 @@ Konfiguration: [`client/jest.config.cjs`](client/jest.config.cjs) — `testEnvir
 
 ## 5. Integrationstests (Server – Jest + supertest)
 
-Upstream hatte keine funktionierenden Integrationstests (einziger Test auskommentiert). Wir haben die gesamte Schicht neu implementiert. Tests laufen gegen ein **echtes PostgreSQL** (nicht gemockt) – mit echten String-IDs (Snowflake), echten DB-Constraints und echtem bcrypt. Konfiguration: [`server/jest.config.js`](server/jest.config.js) — `maxWorkers: 1`, `testTimeout: 30000`, `globalSetup` migriert und seeded die DB, `afterEach` truncated alle Datentabellen.
+Diese Schicht haben wir komplett neu implementiert (Upstream-Stand siehe Abschnitt 1). Die Tests laufen gegen ein **echtes PostgreSQL** (nicht gemockt) – Details zur produktionsnahen Isolation in Abschnitt 9.2. Konfiguration: [`server/jest.config.js`](server/jest.config.js) — `maxWorkers: 1`, `testTimeout: 30000`, `globalSetup` migriert und seeded die DB, `afterEach` truncated alle Datentabellen.
 
 ### 5.1 Merl – 3 Integrationstests (`authentication.test.js`)
 
@@ -154,53 +156,29 @@ k6 läuft containerisiert (`grafana/k6 --network host`) gegen den vollständigen
 
 ### 7.3 Load Test Ergebnisse & Analyse
 
-Die Load-Test-Ergebnisse werden als JSON-Summaries (`load/results/login-summary.json`, `load/results/projects-summary.json`) als GitHub Actions Artifacts gespeichert (Retention: 14 Tage).
+Die Ergebnisse werden als JSON-Summaries (`load/results/*.json`) exportiert; das folgende Diagramm wird daraus reproduzierbar erzeugt (`node load/generate-chart.js`):
 
-**Ergebnisse Login-Load (`login-load.js`) – 20 VUs:**
+![Load-Test-Vergleich: Login (Write) vs. Projects (Read) – p95-Antwortzeit und Durchsatz](load/load-comparison.svg)
 
-```
-✓ status is 200
-✓ returns a token
+> Die folgenden Werte stammen aus einem lokalen Lauf (Apple Silicon, Docker Desktop). Auf einem geteilten CI-Runner fällt der absolute Durchsatz niedriger aus; die **Verhältnisse** zwischen Write- und Read-Last bleiben aber vergleichbar.
 
-checks.........................: 100.00%  ✓ 412   ✗ 0
-http_req_failed................: 0.00%    ✓ 0     ✗ 206
-http_req_duration (avg)........: 421ms
-login_duration p(95)...........: 743ms    ✓ PASS (< 1000ms)
-http_reqs......................: 206       ~5.9 req/s
-vus_max........................: 20
-```
+**Vergleich beider Szenarien** (lokaler Lauf, beide **0 % Fehlerrate**, alle Checks bestanden):
 
-**Ergebnisse Projects-Load (`projects-load.js`) – 30 VUs:**
-
-```
-✓ status is 200
-✓ returns items array
-
-checks.........................: 100.00%  ✓ 644   ✗ 0
-http_req_failed................: 0.00%    ✓ 0     ✗ 322
-http_req_duration (avg)........: 89ms
-list_projects_duration p(95)...: 201ms    ✓ PASS (< 500ms)
-http_reqs......................: 322       ~9.2 req/s
-vus_max........................: 30
-```
-
-**Vergleich beider Szenarien:**
-
-| Metrik             | Login (Write) | Projects (Read) | Verhältnis           |
-|--------------------|---------------|-----------------|----------------------|
-| Avg. Antwortzeit   | ~420 ms       | ~89 ms          | ~4.7× langsamer      |
-| p95 Antwortzeit    | ~743 ms       | ~201 ms         | ~3.7× langsamer      |
-| Fehlerrate         | 0 %           | 0 %             | identisch            |
-| Durchsatz          | ~5.9 req/s    | ~9.2 req/s      | Read 1.6× schneller  |
-| Threshold-Status   | ✓ PASS        | ✓ PASS          | beide bestanden       |
+| Metrik              | Login (Write, 20 VUs) | Projects (Read, 30 VUs) | Verhältnis           |
+|---------------------|-----------------------|-------------------------|----------------------|
+| Avg. Antwortzeit    | ~209 ms               | ~84 ms                  | ~2,5× langsamer      |
+| p95 Antwortzeit     | ~259 ms               | ~111 ms                 | ~2,3× langsamer      |
+| Durchsatz           | ~75 req/s             | ~282 req/s              | Read ~3,7× schneller |
+| Requests (in 35 s)  | 2.646                 | 9.890                   | —                    |
+| Threshold (p95)     | ✓ < 1000 ms           | ✓ < 500 ms              | beide bestanden      |
 
 **Analyse:**
 
-Der deutliche Unterschied zwischen Login- und Read-Endpoint ist primär auf das **bcrypt-Passwort-Hashing** zurückzuführen – ein intentionales Security-Feature (Cost-Factor erhöht die Berechnungszeit per Design). Bei 20 parallelen Login-VUs bleibt der p95-Wert mit ~743 ms komfortabel unter dem 1000 ms-Schwellwert; der Server kann also simultane Logins ohne Degradation bedienen.
+Der Unterschied zwischen Login- und Read-Endpoint ist primär auf das **bcrypt-Passwort-Hashing** zurückzuführen – ein intentionales Security-Feature (der Cost-Factor erhöht die Berechnungszeit per Design). Trotzdem bleibt der Login bei 20 parallelen VUs mit einem p95 von ~259 ms weit unter dem 1000 ms-Schwellwert; der Server bedient simultane Logins also ohne Degradation. Der niedrigere Durchsatz (~75 req/s gegenüber ~282 req/s beim Read) ist die direkte Folge der teureren Berechnung pro Request.
 
-Der Read-Endpoint (`GET /api/projects`) zeigt das erwartete Verhalten einer gut indexierten Datenbankabfrage: bei 30 VUs liegt der p95-Wert bei nur ~201 ms, weit unter dem 500 ms-Schwellwert. Die Fehlerrate ist bei beiden Szenarien 0 %, was Stabilität unter Last bestätigt.
+Der Read-Endpoint (`GET /api/projects`) zeigt das erwartete Verhalten einer gut indexierten Datenbankabfrage: bei sogar 30 VUs liegt der p95 bei nur ~111 ms, klar unter dem 500 ms-Schwellwert, bei ~282 req/s. Die Fehlerrate ist in beiden Szenarien **0 %**, was Stabilität unter Last bestätigt.
 
-Für ein Self-Hosted-System (CI-Runner ohne dedizierte Hardware) sind diese Werte repräsentativ für Team-Größen von bis zu mehreren Dutzend gleichzeitiger Nutzer.
+Fazit: Beide kritischen Pfade (Authentifizierung und Daten-Read) skalieren im getesteten Bereich stabil und schnell. Die Werte sind repräsentativ für Team-Größen von mehreren Dutzend gleichzeitiger Nutzer; der bcrypt-bedingte Login-Overhead ist ein bewusster Sicherheits-Trade-off, kein Performance-Problem.
 
 ---
 
@@ -250,15 +228,21 @@ wat4-g1-planka-vucetic-merl/
 
 ```json
 {
+  "test":               "npm run test:unit && npm run test:integration",
   "test:unit":          "npm run test:unit --prefix client",
   "test:integration":   "npm run test:integration --prefix server",
   "test:e2e":           "npm run test:e2e --prefix client",
-  "test:load:login":    "docker run ... grafana/k6 run load/login-load.js",
-  "test:load:projects": "docker run ... grafana/k6 run load/projects-load.js",
+  "test:load":          "k6 run load/login-load.js && k6 run load/projects-load.js",
+  "test:load:login":    "k6 run load/login-load.js",
+  "test:load:projects": "k6 run load/projects-load.js",
+  "stack:up":           "docker compose up -d --wait",
+  "stack:down":         "docker compose down -v",
   "test:db:up":         "docker compose -f docker-compose.test.yml up -d --wait",
   "test:db:down":       "docker compose -f docker-compose.test.yml down -v"
 }
 ```
+
+> Lokal nutzen die `test:load:*`-Scripts das lokal installierte **k6-Binary** (`brew install k6`); in der CI läuft k6 stattdessen **containerisiert** (`docker run grafana/k6`), um keine Binary installieren zu müssen.
 
 ---
 
@@ -352,75 +336,27 @@ Push / PR auf master
 
 ### Job-Details
 
-#### Job `unit` – Unit Tests
+Vollständige Definition siehe [`tests.yml`](.github/workflows/tests.yml); kompakt zusammengefasst:
 
-```yaml
-runs-on: ubuntu-latest
-working-directory: client
-steps:
-  - actions/setup-node@v4 (Node 22, npm cache)
-  - npm ci
-  - npm run test:unit
-  - upload-artifact: client/coverage (14 Tage)
-```
+- **`unit`** — `npm ci` + `npm run test:unit`; lädt `client/coverage` als Artifact.
+- **`integration`** — PostgreSQL 16 als nativer GitHub-Actions-**Service-Container** (kein Docker-in-Docker, Healthcheck vor Teststart); `npm run test:integration`, dessen `globalSetup` die DB migriert und seedet.
+- **`e2e`** — baut den Stack aus eigenem Code (`docker compose up -d --build`), installiert Playwright-Chromium, `npm run test:e2e`; lädt `playwright-report`.
+- **`load`** — Stack + `scripts/accept-terms.sh`, dann k6 containerisiert (`grafana/k6`) für beide Szenarien; lädt die JSON-Summaries.
 
-#### Job `integration` – Integrationstests
-
-```yaml
-runs-on: ubuntu-latest
-working-directory: server
-services:
-  postgres:
-    image: postgres:16-alpine
-    env: { POSTGRES_DB: planka_test, POSTGRES_PASSWORD: postgres }
-    options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 5
-env:
-  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/planka_test
-  SECRET_KEY: ci-test-secret
-  BASE_URL: http://localhost:1337
-steps:
-  - actions/setup-node@v4 (Node 22)
-  - npm ci
-  - npm run test:integration
-```
-
-PostgreSQL läuft als nativer **Service-Container** von GitHub Actions – kein Docker-in-Docker nötig, Healthcheck stellt sicher dass die DB bereit ist bevor Tests starten.
-
-#### Job `e2e` – E2E Tests
-
-```yaml
-runs-on: ubuntu-latest
-steps:
-  - docker compose up -d --build --wait   # Stack aus lokalem Code bauen
-  - npm ci && npx playwright install --with-deps chromium
-  - E2E_BASE_URL=http://localhost:3000 npm run test:e2e
-  - upload-artifact: client/playwright-report (14 Tage)
-  - docker compose down -v               # immer aufräumen (if: always())
-```
-
-#### Job `load` – Load Tests
-
-```yaml
-runs-on: ubuntu-latest
-steps:
-  - docker compose up -d --build --wait
-  - bash scripts/accept-terms.sh http://localhost:3000
-  - mkdir -p load/results && chmod 777 load/results
-  - docker run --rm --network host -e BASE_URL=... -v $PWD/load:/load \
-      grafana/k6 run --summary-export /load/results/login-summary.json /load/login-load.js
-  - docker run --rm ... /load/projects-load.js → projects-summary.json
-  - upload-artifact: load/results (14 Tage)
-  - docker compose down -v
-```
+Alle vier Jobs laufen parallel; Artifacts werden **14 Tage** aufbewahrt, die Docker-Stacks via `docker compose down -v` (`if: always()`) aufgeräumt.
 
 ### Weitere Workflows
 
-| Workflow             | Datei                                     | Zweck                           |
-|----------------------|-------------------------------------------|---------------------------------|
-| Lint                 | `lint.yml`                                | ESLint auf Pull Requests        |
-| Docker Build & Push  | `build-and-push-docker-image.yml`         | Release-Images bauen und pushen |
-| Docker Nightly       | `build-and-push-docker-nightly-image.yml` | Nächtliche Builds               |
-| Release Package      | `build-and-publish-release-package.yml`   | Release Artifacts               |
+Die aus dem Upstream geerbten Workflows wurden für unseren Fork **deaktiviert** (Trigger auf `workflow_dispatch`, also nur noch manuell), da sie self-hosted Runner bzw. Registry-/Publish-Zugriff voraussetzen und sonst im Actions-Tab nur fehlschlagen würden. Die Dateien bleiben als Referenz erhalten.
+
+| Workflow             | Datei                                     | Zweck                           | Status (Fork)            |
+|----------------------|-------------------------------------------|---------------------------------|--------------------------|
+| Lint                 | `lint.yml`                                | ESLint auf Pull Requests        | **aktiv**                |
+| Build and Test (alt) | `build-and-test.yml`                      | Upstream-Cucumber-Tests         | deaktiviert (ersetzt durch `tests.yml`) |
+| Docker Build & Push  | `build-and-push-docker-image.yml`         | Release-Images bauen und pushen | deaktiviert (manuell)    |
+| Docker Nightly       | `build-and-push-docker-nightly-image.yml` | Nächtliche Builds               | deaktiviert (manuell)    |
+| Release Package      | `build-and-publish-release-package.yml`   | Release Artifacts               | deaktiviert (manuell)    |
+| Release Helm Chart   | `release-helm-chart.yml`                  | Helm-Chart-Release              | deaktiviert (manuell)    |
 
 ---
 
@@ -433,26 +369,10 @@ Coverage wird für die vier getesteten Utility-Module gemessen und als HTML/JSON
 | Datei                        | Statements | Branches | Functions | Lines  |
 |------------------------------|------------|----------|-----------|--------|
 | `src/utils/validator.js`     | 100 %      | 100 %    | 100 %     | 100 %  |
-| `src/utils/mentions.js`      | 100 %      | 100 %    | 100 %     | 100 %  |
-| `src/utils/stopwatch.js`     | 100 %      | ~90 %    | 100 %     | 100 %  |
+| `src/utils/mentions.js`      | 92,3 %     | 100 %    | 80 %      | 100 %  |
+| `src/utils/stopwatch.js`     | 86,4 %     | 37,5 %   | 62,5 %    | 100 %  |
 | `src/utils/merge-records.js` | 100 %      | 100 %    | 100 %     | 100 %  |
 
-Coverage-Reports werden als `client-coverage`-Artifact in GitHub Actions gespeichert (14 Tage Retention) und können direkt im Browser als HTML geöffnet werden.
+Der HTML-Report liegt unter `client/coverage/` und wird in CI als `client-coverage`-Artifact hochgeladen.
 
 **Server / E2E / Load:** Keine Quellcode-Coverage – diese Ebenen messen API-Verhalten, Feature-Korrektheit und Performance, nicht Code-Pfade.
-
----
-
-## 12. Zusammenfassung
-
-| Aspekt                            | Entscheidung & Begründung                                                            |
-|-----------------------------------|--------------------------------------------------------------------------------------|
-| **Webanwendung**                  | Planka (Open Source, geforkt) – produktionsreifes Kanban-System mit realem Tech-Stack |
-| **Unit Framework**                | Jest – modernes Framework mit `test.each`, Fake-Timern und integrierter Coverage     |
-| **Integration Framework**         | Jest + supertest – gegen echtes PostgreSQL (nicht gemockt), produktionsnah           |
-| **E2E Framework**                 | Playwright – stabile Browser-Automation, `data-testid`-Support, CI-ready             |
-| **Load Framework**                | k6 – deklarative VU-Szenarien, Docker-native, JSON-Export für Artifact-Archivierung  |
-| **Test-Isolation (Integration)**  | TRUNCATE nach jedem Test, Sails einmal hochfahren, PostgreSQL als Service-Container  |
-| **Test-Isolation (E2E/Load)**     | Frischer Docker-Stack pro CI-Run, stets aus lokalem Quellcode gebaut                 |
-| **CI**                            | GitHub Actions – 4 parallele Jobs, PostgreSQL Service-Container, 14-Tage-Artifacts  |
-| **Upstream-Delta**                | Upstream hatte nie funktionierende Integrationstests und keine E2E/Load-Tests        |

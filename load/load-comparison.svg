@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="360" viewBox="0 0 760 360" font-family="-apple-system, Segoe UI, Roboto, sans-serif">
+  <rect width="760" height="360" fill="#ffffff" />
+  <text x="380" y="32" text-anchor="middle" font-size="20" font-weight="bold" fill="#222">k6 Load Test — Login (write) vs. Projects (read)</text>
+  
+    <text x="140" y="45" text-anchor="middle" font-size="16" font-weight="bold" fill="#222">p95 Response Time</text>
+    <text x="140" y="62" text-anchor="middle" font-size="12" fill="#888">milliseconds (lower is better)</text>
+    <line x1="50" y1="280" x2="230" y2="280" stroke="#ccc" stroke-width="1" />
+    
+      <rect x="70" y="112" width="70" height="168" rx="4" fill="#e8743b" />
+      <text x="105" y="104" text-anchor="middle" font-size="15" font-weight="bold" fill="#222">258.6</text>
+      <text x="105" y="300" text-anchor="middle" font-size="12" fill="#555">Login (write)</text>
+      <rect x="190" y="208.0185614849188" width="70" height="71.98143851508121" rx="4" fill="#19a979" />
+      <text x="225" y="200.0185614849188" text-anchor="middle" font-size="15" font-weight="bold" fill="#222">110.8</text>
+      <text x="225" y="300" text-anchor="middle" font-size="12" fill="#555">Projects (read)</text>
+  
+    <text x="530" y="45" text-anchor="middle" font-size="16" font-weight="bold" fill="#222">Throughput</text>
+    <text x="530" y="62" text-anchor="middle" font-size="12" fill="#888">requests / second (higher is better)</text>
+    <line x1="440" y1="280" x2="620" y2="280" stroke="#ccc" stroke-width="1" />
+    
+      <rect x="460" y="235.02127659574467" width="70" height="44.97872340425532" rx="4" fill="#e8743b" />
+      <text x="495" y="227.02127659574467" text-anchor="middle" font-size="15" font-weight="bold" fill="#222">75.5</text>
+      <text x="495" y="300" text-anchor="middle" font-size="12" fill="#555">Login (write)</text>
+      <rect x="580" y="112" width="70" height="168" rx="4" fill="#19a979" />
+      <text x="615" y="104" text-anchor="middle" font-size="15" font-weight="bold" fill="#222">282</text>
+      <text x="615" y="300" text-anchor="middle" font-size="12" fill="#555">Projects (read)</text>
+  <text x="380" y="348" text-anchor="middle" font-size="12" fill="#888">Both scenarios: 0% error rate · all thresholds passed (Login p95 &lt; 1000 ms, Read p95 &lt; 500 ms)</text>
+</svg>
