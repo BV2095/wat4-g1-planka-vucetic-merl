@@ -67,7 +67,7 @@ Unser Ansatz: Wir haben die fehlenden Ebenen der Testpyramide vollständig neu i
 | Unit (Client)        | **Jest**                   | 30       | Utility-Funktionen im Node-Environment            |
 | Integration (Server) | **Jest** + **supertest**   | 30 / 7   | HTTP-Roundtrips gegen echtes Sails + PostgreSQL   |
 | E2E / System         | **Playwright**             | 1.58     | Browser-Automation (Chromium)                     |
-| Load                 | **k6** (Grafana)           | latest   | Lasttests via Docker-Container                    |
+| Load                 | **k6**                     | latest   | Lasttests via Docker-Container                    |
 
 ---
 
